@@ -40,6 +40,35 @@
     });
 
     /////// CLASSES ///////
+    class Debug {
+        constructor(name, defaultValue)
+        {
+            this.name = name;
+            this.value = defaultValue;
+            this.variableName = this.name.replace(/ /g, "_");
+            this.debugger = null;
+
+            this.createDebugger();
+        }
+
+        updateValue(value)
+        {
+            this.value = value;
+            this.debugger.textContent = this.value;
+        }
+
+        createDebugger()
+        {
+            // <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel">Current Game: 0</p>
+            getElementByXpath("/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/button").insertAdjacentHTML('afterbegin',`
+                <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel mbfg_value_${this.variableName}">${this.name}: ${this.value}</p>
+                `
+            );
+
+            this.debugger = document.getElementsByClassName(`mbfg_value_${this.variableName}`)[0];
+        }
+    }
+
     class ToggleButton {
         constructor(name1, name2, clicked)
         {
@@ -114,13 +143,16 @@
 
             this.currentDifficultyLevel = 1;
 
+            // Other Classes
             this.autoPlayButton = null;
+            this.gamesDebug = null;
 
             // GAME
             this.currentGame = 1;
             this.gamesToPlay = 1;
             this.rowsToTarget = 1;
             this.checkForGameWinOrLose = false;
+            this.currentRow = this.rows;
         }
 
         setVariables()
@@ -211,12 +243,6 @@
             })
 
             return Difficulty.Normal;
-        }
-        
-        isGameLost() 
-        { 
-            if (document.getElementsByClassName("gameBetSubmit")[1].textContent == "Cashout"){ return false; } 
-            return true;  
         }
 
         /*
@@ -353,11 +379,15 @@
         gameEnded(didWin)
         {
             //console.log(`Did win: ${didWin}`);
-            
+            //if (this.isGameLost() == false)
+            //{
+            //    // Game still in play so just end
+            //    this.clickSubmitButton();
+            //}
+
             if (!didWin)
             {
                 this.gamesLostInRow++;
-                
             } 
 
             if (this.currentGame > this.gamesToPlay)
@@ -372,7 +402,7 @@
                         this.gameEndedOnDefaultMethod(didWin);
                     } else (this.method == TowerMethods.Adams)
                     {
-                        this.gameEndedOnAdamsMethod(didWin);
+                        //this.gameEndedOnAdamsMethod(didWin);
                     }
                     if (didWin)
                     {
@@ -414,6 +444,7 @@
 
         clickButton(i)
         {
+            this.currentRow = i;
             const currentRow = this.rows-i;
             if (currentRow < this.rowsToTarget)
             {
@@ -425,7 +456,7 @@
                 this.checkForGameWinOrLose = true;
             } else 
             {
-                //console.log("Game Won");
+                console.log("Game Won");
                 this.clickSubmitButton();
                 this.gameEnded(true);
             }
@@ -434,8 +465,9 @@
         // Starts of by clicking start game and contue it off clickButton Function
         startGame()
         {
-            //console.log("Starting New Game");
+            console.log("Starting New Game");
             this.currentGame++;
+            this.gamesDebug.updateValue(this.currentGame);
             this.clickSubmitButton();
             setTimeout(()=>{
                 //console.log(`Starting game on row: ${this.rows}, rows targeting: ${this.rowsToTarget}`);
@@ -458,6 +490,8 @@
 
             this.currentGame = 1;
             this.checkForGameWinOrLose = false;
+            this.currentRow = this.rows;
+            this.gamesDebug.updateValue(this.currentGame);
 
             this.startGame();
         }
@@ -471,13 +505,14 @@
                 this.autoPlayButton.canChangeState = true;
             }, 2000)
         }
-
         openAutoTab()
         {
             const methods = addEnumSettings("Methods", TowerMethods, TowerMethods.Default, (method)=>{ this.methodChanged(method); });
             this.tabElements.push(methods);
 
             this.methodChanged(this.method);
+
+            this.gamesDebug = new Debug("Current Games", 0);
 
             this.autoPlayButton = new ToggleButton("Start Autoplay", "Cancel Autoplay", (toggled)=>{
                 this.gameInPlay=toggled;
@@ -534,31 +569,46 @@
             }
         }
         
+        isGameLost() 
+        { 
+            var button = document.getElementsByClassName("gameBetSubmit")[0];
+            if (this.currentTab == TowerTab.Auto)
+            {
+                button = document.getElementsByClassName("gameBetSubmit")[1];
+            }
+            if (button.textContent == "Cashout"){ return false; } 
+            return true;  
+        }
+
+        onGamePoint()
+        {
+            if (this.isGameLost() == true)
+            {
+                console.log("Game Lost");
+                this.gameEnded(false);
+            }
+            else if (this.isGameLost() == false)
+            {
+                //console.log("Continue Game");
+                this.clickButton(this.currentRow-1); // Go to next row
+            }
+        }
+
         initialize()
         {
             this.setVariables();
             addBetTab("Auto", (e)=>{this.openTab(e);});
 
-            this.checkForGameWinOrLose = true;
+            //this.checkForGameWinOrLose = true;
             const towersGame = document.getElementsByClassName("towers_towersGameInner__gbFa9")[0];
-            var observer = new MutationObserver(function() {
-                console.log(`Tower Game Changed`);
+            var observer = new MutationObserver(() => {
                 if (this.checkForGameWinOrLose == true)
                 {
+                    console.log("Game Point");
                     this.checkForGameWinOrLose = false;
                     setTimeout(()=>{
-                        console.log(`Game Lost: ${this.isGameLost()}`);
-                        /*
-                        if (this.isGameLost() == true)
-                        {
-                            //console.log("Game Lost");
-                            this.gameEnded(false);
-                        }
-                        else if (this.isGameLost() == false)
-                        {
-                            this.clickButton(i-1); // Go to next row
-                        }
-                        */
+                        //console.log(`Game Lost: ${this.isGameLost()}`);
+                        this.onGamePoint();
                     }, 1000)
                 }
             });
