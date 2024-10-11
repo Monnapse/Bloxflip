@@ -105,16 +105,19 @@
             this.method = TowerMethods.Default;
 
             this.gameInPlay = false;
-            this.canChangeGameState = true;
+            //this.canChangeGameState = true;
 
-            this.currentGame = 0;
+            
             this.gamesLostInRow = 0;
             this.rows = 8;
             this.buttons = 3;
 
             this.currentDifficultyLevel = 1;
 
+            this.autoPlayButton = null;
+
             // GAME
+            this.currentGame = 1;
             this.gamesToPlay = 1;
             this.rowsToTarget = 1;
         }
@@ -128,12 +131,13 @@
             this.gamesToPlay = 1;
             this.rowsToTarget = 1;
             this.gameInPlay = false;
-            this.canChangeGameState = true;
-            this.currentGame = 0;
+            //this.canChangeGameState = true;
+            this.currentGame = 1;
             this.gamesLostInRow = 0;
             this.rows = 8;
             this.buttons = 3;
             this.currentDifficultyLevel = 1;
+            this.autoPlayButton = null;
         }
 
         addDefaultMethodSettings()
@@ -189,6 +193,7 @@
 
         clickHalfButton() { getElementByXpath('/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/div[2]/div/div/button[1]').click(); }
         clickDoubleButton() { getElementByXpath('/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/div[2]/div/div/button[2]').click(); }
+        clickSubmitButton() { getElementByXpath('/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/button[2]').click(); }
         clickTowerButton(row, button) { getElementByXpath(`/html/body/div[2]/div[2]/div/div[2]/div[1]/div[2]/div/div/div[${row}]/div[${button}]/button`).click() }
         getDifficultyLevel() {
             const difficulties = getElementByXpath("/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/div[3]/div");
@@ -213,6 +218,162 @@
             return true;  
         }
 
+        /*
+        console.log("Ended on Adam's Method");
+                
+        if (didWin)
+        {
+            // Reset
+            // Click Half button
+            function clickHalfButton(i)
+            {
+                if (i <= 0)
+                {
+                    // Reseting Lost Counter
+                    gamesLost = 0;
+                    towersGame.startGame();
+                } else
+                {
+                    getElementByXpath('/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/div[2]/div/div/button[1]').click();
+                    setTimeout(()=>{
+                        clickHalfButton(i-1)
+                    }, 800);
+                }
+            }
+            if (gamesLost <= 0)
+            {
+                towersGame.startGame();
+            } else {
+                clickHalfButton(gamesLost);
+            }
+        } else {
+            // Double
+            // Click Double button
+            gamesLost++;
+            getElementByXpath('/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/div[2]/div/div/button[2]').click();
+
+            setTimeout(()=>{
+                towersGame.startGame();
+            }, 800);
+        }
+        */
+        clickHalfButton(i, callBackFunction)
+        {
+            if (i > 0)
+            {
+                this.clickHalfButton();
+                setTimeout(()=>{
+                    this.clickHalfButton(i-1, callBackFunction);
+                }, 500)
+            }
+            else if (callBackFunction != null)
+            {
+                callBackFunction();
+            }
+        }
+
+        gameEndedOnAdamsMethod(didWin)
+        {
+            console.log("Ended on Adam's Method");
+
+            if (didWin == true)
+            {
+                if (this.gamesLostInRow <= 0)
+                {
+                    this.startGame();
+                } else {
+                    this.clickHalfButton(this.gamesLostInRow, ()=>{
+                        // Reseting Lost Counter
+                        this.gamesLostInRow = 0;
+                        this.startGame();
+                    });
+                }
+            }
+            else 
+            {
+                // Double
+                // Click Double button
+                this.gamesLostInRow++;
+                this.clickDoubleButton();
+
+                setTimeout(()=>{
+                    this.startGame();
+                }, 500);
+            }
+        }
+
+        gameEndedOnDefaultMethod(didWin)
+        {
+            console.log(`WON: ${didWin} On Default`);
+            this.startGame();
+        }
+
+        /*
+        gameEnded(didWin)
+        {
+            
+            if (this.gameInPlay == false || this.currentGame > this.gamesToPlay)
+            {
+                this.sessionEnded();
+                console.log(`Game Ended on: ${this.gameInPlay}`)
+            }
+            else if (this.gameInPlay == true && this.gamesAmount == -1 || this.gameInPlay == true && this.currentGame <= this.gamesToPlay)
+            {
+                console.log(`starting new game on method: ${this.method}`)
+                setTimeout(()=>{
+                    if (this.method == TowerMethods.Default)
+                    {
+                        this.gameEndedOnDefaultMethod(didWin);
+                    } else (this.method == TowerMethods.Adams)
+                    {
+                        this.gameEndedOnAdamsMethod(didWin);
+                    }
+                }, 1000)
+            }
+        }
+        */
+
+        /*
+        sessionEnded()
+        {
+            this.gameInPlay = false;
+            this.autoPlayButton.switchTo(this.gameInPlay);
+        }
+        */
+        sessionEnded()
+        {
+            //this.gameInPlay = false;
+            //this.autoPlayButton.switchTo(this.gameInPlay);
+            console.log("AUTOPLAY Session Ended");
+            this.autoPlayButton.switchTo(false);
+        }
+
+        gameEnded(didWin)
+        {
+            console.log(`Did win: ${didWin}`);
+
+            if (this.currentGame > this.gamesToPlay)
+            {
+                this.sessionEnded();
+            }
+            else if (this.gameInPlay == true && this.currentGame <= this.gamesToPlay)
+            {
+                setTimeout(()=>{
+                    if (this.method == TowerMethods.Default)
+                    {
+                        this.gameEndedOnDefaultMethod(didWin);
+                    } else (this.method == TowerMethods.Adams)
+                    {
+                        this.gameEndedOnAdamsMethod(didWin);
+                    }
+                }, 500)
+            }
+            else 
+            {
+                this.sessionEnded();
+            }
+        }
+        /*
         // Click on rows & detect if game ends
         clickButton(i)
         {
@@ -226,110 +387,85 @@
                     this.gameEnded(false);
                 } else if (this.rows-i >= this.rowsToTarget-1)
                 {
+                    console.log("Game Won");
                     setTimeout(()=>{
-                        getElementByXpath("/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/button[2]").click();
+                        this.clickSubmitButton();
                         this.gameEnded(true);
                     }, 1000)
                 } else {
+                    console.log("Next Row");
                     setTimeout(()=>{this.clickButton(i-1)}, 750);
                 }
             }, 500)
+        }
+        */
+
+        clickButton(i)
+        {
+            const currentRow = (this.rows-i)+1;
+            if (currentRow <= this.rowsToTarget)
+            {
+                console.log("click on row");
+
+                var buttonIndex = getRandomInt(1, this.buttons+1); // Get Random Button Index
+                this.clickTowerButton(i, buttonIndex); // Click on button
+
+                setTimeout(()=>{
+                    if (this.isGameLost())
+                    {
+                        console.log("Game Lost");
+                        this.gameEnded(false);
+                    }
+                    else 
+                    {
+                        this.clickButton(i-1); // Go to next row
+                    }
+                }, 500)
+            } else 
+            {
+                console.log("Game Won");
+                this.clickSubmitButton();
+                this.gameEnded(true);
+            }
         }
 
         // Starts of by clicking start game and contue it off clickButton Function
         startGame()
         {
-            if (this.gamesAmount == -1 || this.currentGame < this.gamesToPlay)
-            {
-                this.currentGame += 1;
-                getElementByXpath('/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/button[2]').click();
-                setTimeout(()=>{
-                    this.clickButton(this.rows);
-                }, 1000)
-            }
-        }
-
-        gameEndedOnAdamsMethod(didWin)
-        {
-            if (didWin)
-            {
-                // Reset
-                // Click Half button
-                function halfDownToDefaultValue(i)
-                {
-                    if (i <= 0)
-                    {
-                        // Reseting Lost Counter
-                        this.gamesLostInRow = 0;
-                        this.startGame();
-                    } else
-                    {
-                        this.clickHalfButton();
-                        setTimeout(()=>{
-                            goDown(i-1)
-                        }, 800);
-                    }
-                }
-                if (this.gamesLostInRow <= 0)
-                {
-                    this.startGame();
-                } else {
-                    halfDownToDefaultValue(this.gamesLostInRow);
-                }
-            } else {
-                // Double
-                // Click Double button
-                this.gamesLostInRow++;
-                this.clickDoubleButton();
-                setTimeout(()=>{
-                    this.startGame();
-                }, 800);
-            }
-        }
-
-        gameEndedOnDefaultMethod(didWin)
-        {
-            this.startGame();
-        }
-
-        gameEnded(didWin)
-        {
-            if (this.gamesAmount == -1 || this.currentGame <= this.gamesToPlay)
-            {
-                setTimeout(()=>{
-                    if (this.method == TowerMethods.Default)
-                    {
-                        this.gameEndedOnDefaultMethod(didWin);
-                    } else (this.method == TowerMethods.Adams)
-                    {
-                        this.gameEndedOnAdamsMethod(didWin);
-                    }
-                }, 1000)
-            }
+            console.log("Starting New Game");
+            this.currentGame++;
+            this.clickSubmitButton();
+            setTimeout(()=>{
+                console.log(`Starting game on row: ${this.rows}, rows targeting: ${this.rowsToTarget}`);
+                this.clickButton(this.rows);
+            }, 1000)
         }
 
         startAutoPlay()
         {
-            this.canChangeGameState = false;
-            const difficultyLevel = this.getDifficultyLevel();
+            this.gameInPlay = true;
+            //this.canChangeGameState = false;
+
+            this.getDifficultyLevel();
             if (this.currentDifficultyLevel == Difficulty.Normal)
             {
                 this.buttons = 2;
             } else {
                 this.buttons = 3;
             }
-            //console.log(`Button Amount: ${this.buttons}, Difficulty Level: ${this.currentDifficultyLevel}`);
 
-            this.currentGame = 0;
+            this.currentGame = 1;
 
             this.startGame();
         }
-        cancelAutoPlay(autoPlayButton)
+        cancelAutoPlay()
         {
-            autoPlayButton.canChangeState = false;
+            this.gameInPlay = false;
+
+            this.autoPlayButton.canChangeState = false;
             setTimeout(()=>{
-                this.canChangeGameState = true;
-                autoPlayButton.canChangeState = true;
+                //this.canChangeGameState = true;
+                this.autoPlayButton.canChangeState = true;
             }, 2000)
         }
 
@@ -340,16 +476,16 @@
 
             this.methodChanged(this.method);
 
-            const autoPlayButton = new ToggleButton("Start Autoplay", "Cancel Autoplay", (toggled)=>{
+            this.autoPlayButton = new ToggleButton("Start Autoplay", "Cancel Autoplay", (toggled)=>{
                 this.gameInPlay=toggled;
                 if (this.gameInPlay)
                 {
                     this.startAutoPlay();
                 } else {
-                    this.cancelAutoPlay(autoPlayButton);
+                    this.cancelAutoPlay();
                 }
             });
-            this.tabElements.push(autoPlayButton.button);
+            this.tabElements.push(this.autoPlayButton.button);
 
             const gameToggleButton = document.getElementsByClassName("gameBetSubmit")[1];
             gameToggleButton.addEventListener("click", ()=>{
@@ -357,7 +493,7 @@
                 {
                     // Ending
                     //console.log(gameToggleButton.textContent);
-                    autoPlayButton.switchTo(false);
+                    //this.autoPlayButton.switchTo(false);
                 } else {
                     // Starting
                 }
