@@ -1,0 +1,53 @@
+<div class="gameBlock gameBet towers_towersBet__irweK" style="animation: 0.3s ease 0s 1 normal none running bottomTop;">
+    <div class="gameBetTabs" style="display: flex; justify-content: space-between;">
+        <div class="mbfg_bet_tabs"><button class="button_button__dZRSb button_tab__RC45L">Manual</button><button
+                class="button_button__dZRSb button_tab__RC45L mbfg_button button_isActive__tpT2u">Auto</button></div>
+        <div style="display: flex; gap: 1em; height: 80%;"><button
+                class="button_button__dZRSb button_betOption__yOLYh"><svg fill="#8690bf"
+                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 318.293 318.293" xml:space="preserve"
+                    style="height: 0.75em;">
+                    <path
+                        d="M159.148 0c-52.696 0-95.544 39.326-95.544 87.662h47.736c0-22.007 21.438-39.927 47.808-39.927 26.367 0 47.804 17.92 47.804 39.927v6.929c0 23.39-10.292 34.31-25.915 50.813-20.371 21.531-45.744 48.365-45.744 105.899h47.745c0-38.524 15.144-54.568 32.692-73.12 17.368-18.347 38.96-41.192 38.96-83.592v-6.929C254.689 39.326 211.845 0 159.148 0zM134.475 277.996h49.968v40.297h-49.968z">
+                    </path>
+                </svg></button><button class="button_button__dZRSb button_betOption__yOLYh">Fairness</button><button
+                class="button_button__dZRSb button_betOption__yOLYh">History</button></div>
+    </div>
+    <div class="customInput gameBetInput">
+        <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel">Bet amount</p>
+        <div class="customInputInner"><input class="input_input__N_xjH input_inputWithCurrencyStart__agCI6" type="text"
+                pattern="^-?[0-9]\d*\.?\d*$" value="30" style="background-image: url(&quot;/currency-icon.svg&quot;);">
+            <div class="customInputInnerButtons"><button
+                    class="button_button__dZRSb button_inputButton__B2DPv">1/2</button><button
+                    class="button_button__dZRSb button_inputButton__B2DPv">2x</button><button
+                    class="button_button__dZRSb button_inputButton__B2DPv">Max</button></div>
+        </div>
+    </div>
+    <div class="customInput gameBetInput">
+        <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel">Difficulty</p>
+        <div class="customInputOptions">
+            <button class="button_button__dZRSb button_betOption__yOLYh button_isActive__tpT2u">Easy</button>
+            <button class="button_button__dZRSb button_betOption__yOLYh">Normal</button>
+            <button class="button_button__dZRSb button_betOption__yOLYh">Hard</button>
+        </div>
+    </div>
+
+    <div class="customInput gameBetInput">
+        <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel">${Method}</p>
+        <div class="customInputOptions">
+            <button class="button_button__dZRSb button_betOption__yOLYh">${value}</button>
+            <button class="button_button__dZRSb button_betOption__yOLYh button_isActive__tpT2u">${value}</button>
+        </div>
+    </div>
+
+    <div class="customInput gameBetInput">
+        <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel">${name}</p>
+        <div class="customInputInner">
+            <input class="input_input__N_xjH input_inputWithCurrencyEnd__y_4V_" type="text"
+                pattern="^-?[0-9]\d*(\.\d+)?$" placeholder="0" value="${defaultValue}"
+                style="background-image: url(&quot;/icons/infinity.svg&quot;);">
+            </div>
+    </div>
+
+    <button class="button_button__dZRSb button_primary__LXFHi gameBetSubmit mobileBottomMargin">Start new game</button>
+    <button class="button_button__dZRSb button_secondary__Fa_lP gameBetSubmit mobileBottomMargin">Cancel Autoplay</button>
+</div>
