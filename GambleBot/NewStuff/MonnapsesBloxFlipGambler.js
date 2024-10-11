@@ -120,6 +120,7 @@
             this.currentGame = 1;
             this.gamesToPlay = 1;
             this.rowsToTarget = 1;
+            this.checkForGameWinOrLose = false;
         }
 
         setVariables()
@@ -257,13 +258,13 @@
             }, 800);
         }
         */
-        clickHalfButton(i, callBackFunction)
+        clickHalfButtonUntil(i, callBackFunction)
         {
             if (i > 0)
             {
                 this.clickHalfButton();
                 setTimeout(()=>{
-                    this.clickHalfButton(i-1, callBackFunction);
+                    this.clickHalfButtonUntil(i-1, callBackFunction);
                 }, 500)
             }
             else if (callBackFunction != null)
@@ -274,17 +275,18 @@
 
         gameEndedOnAdamsMethod(didWin)
         {
-            console.log("Ended on Adam's Method");
+            //console.log("Ended on Adam's Method");
 
             if (didWin == true)
             {
+                //console.log(`Games lost in a row: ${this.gamesLostInRow}`);
                 if (this.gamesLostInRow <= 0)
                 {
                     this.startGame();
                 } else {
-                    this.clickHalfButton(this.gamesLostInRow, ()=>{
+                    
+                    this.clickHalfButtonUntil(this.gamesLostInRow, ()=>{
                         // Reseting Lost Counter
-                        this.gamesLostInRow = 0;
                         this.startGame();
                     });
                 }
@@ -293,7 +295,6 @@
             {
                 // Double
                 // Click Double button
-                this.gamesLostInRow++;
                 this.clickDoubleButton();
 
                 setTimeout(()=>{
@@ -304,7 +305,7 @@
 
         gameEndedOnDefaultMethod(didWin)
         {
-            console.log(`WON: ${didWin} On Default`);
+            //console.log(`WON: ${didWin} On Default`);
             this.startGame();
         }
 
@@ -344,13 +345,20 @@
         {
             //this.gameInPlay = false;
             //this.autoPlayButton.switchTo(this.gameInPlay);
-            console.log("AUTOPLAY Session Ended");
+            //console.log("AUTOPLAY Session Ended");
             this.autoPlayButton.switchTo(false);
+            this.gamesLostInRow = 0;
         }
 
         gameEnded(didWin)
         {
-            console.log(`Did win: ${didWin}`);
+            //console.log(`Did win: ${didWin}`);
+            
+            if (!didWin)
+            {
+                this.gamesLostInRow++;
+                
+            } 
 
             if (this.currentGame > this.gamesToPlay)
             {
@@ -366,6 +374,10 @@
                     {
                         this.gameEndedOnAdamsMethod(didWin);
                     }
+                    if (didWin)
+                    {
+                        this.gamesLostInRow = 0;
+                    } 
                 }, 500)
             }
             else 
@@ -402,28 +414,18 @@
 
         clickButton(i)
         {
-            const currentRow = (this.rows-i)+1;
-            if (currentRow <= this.rowsToTarget)
+            const currentRow = this.rows-i;
+            if (currentRow < this.rowsToTarget)
             {
-                console.log("click on row");
+                //console.log("click on row");
 
                 var buttonIndex = getRandomInt(1, this.buttons+1); // Get Random Button Index
                 this.clickTowerButton(i, buttonIndex); // Click on button
 
-                setTimeout(()=>{
-                    if (this.isGameLost())
-                    {
-                        console.log("Game Lost");
-                        this.gameEnded(false);
-                    }
-                    else 
-                    {
-                        this.clickButton(i-1); // Go to next row
-                    }
-                }, 500)
+                this.checkForGameWinOrLose = true;
             } else 
             {
-                console.log("Game Won");
+                //console.log("Game Won");
                 this.clickSubmitButton();
                 this.gameEnded(true);
             }
@@ -432,11 +434,11 @@
         // Starts of by clicking start game and contue it off clickButton Function
         startGame()
         {
-            console.log("Starting New Game");
+            //console.log("Starting New Game");
             this.currentGame++;
             this.clickSubmitButton();
             setTimeout(()=>{
-                console.log(`Starting game on row: ${this.rows}, rows targeting: ${this.rowsToTarget}`);
+                //console.log(`Starting game on row: ${this.rows}, rows targeting: ${this.rowsToTarget}`);
                 this.clickButton(this.rows);
             }, 1000)
         }
@@ -455,6 +457,7 @@
             }
 
             this.currentGame = 1;
+            this.checkForGameWinOrLose = false;
 
             this.startGame();
         }
@@ -519,7 +522,7 @@
 
         openTab(tabName)
         {
-            console.log(tabName);
+            //console.log(tabName);
             if (tabName != null && TowerTab[tabName] == TowerTab.Auto && this.currentTab != TowerTab.Auto)
             {
                 this.currentTab = TowerTab.Auto;
@@ -530,17 +533,43 @@
                 this.clearTab();
             }
         }
-
+        
         initialize()
         {
             this.setVariables();
             addBetTab("Auto", (e)=>{this.openTab(e);});
-        }
 
-        //stop()
-        //{
-        //    
-        //}
+            this.checkForGameWinOrLose = true;
+            const towersGame = document.getElementsByClassName("towers_towersGameInner__gbFa9")[0];
+            var observer = new MutationObserver(function() {
+                console.log(`Tower Game Changed`);
+                if (this.checkForGameWinOrLose == true)
+                {
+                    this.checkForGameWinOrLose = false;
+                    setTimeout(()=>{
+                        console.log(`Game Lost: ${this.isGameLost()}`);
+                        /*
+                        if (this.isGameLost() == true)
+                        {
+                            //console.log("Game Lost");
+                            this.gameEnded(false);
+                        }
+                        else if (this.isGameLost() == false)
+                        {
+                            this.clickButton(i-1); // Go to next row
+                        }
+                        */
+                    }, 1000)
+                }
+            });
+            
+            var config = {
+                childList: true,
+                subtree: true,
+            };
+              
+            observer.observe(towersGame, config);
+        }
     }
 
     /////// FUNCTIONS ///////
@@ -558,7 +587,7 @@
         const buttons = gameBetTabs.getElementsByClassName("button_tab__RC45L");
         for(let i=0;i<=buttons.length;i++) {
             const btn = buttons.item(i);
-            console.log(btn.outerHTML);
+            //console.log(btn.outerHTML);
             buttonsString += btn.outerHTML;
             btn.remove();
         }
@@ -711,7 +740,7 @@
         } else {
             // Game unsupported tab
             currentPage = Page.None;
-            console.log("This page is not currently supported");
+            //console.log("This page is not currently supported");
         }
     }
     function getRandomInt(min, max) {
