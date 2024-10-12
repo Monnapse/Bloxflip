@@ -48,24 +48,25 @@
             this.variableName = this.name.replace(/ /g, "_");
             this.debugger = null;
 
-            this.createDebugger();
+            //this.createDebugger();
         }
 
         updateValue(value)
         {
             this.value = value;
-            this.debugger.textContent = this.value;
+            this.debugger.textContent = `${this.name}: ${this.value}`;
         }
 
         createDebugger()
         {
             // <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel">Current Game: 0</p>
-            getElementByXpath("/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/button").insertAdjacentHTML('afterbegin',`
-                <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel mbfg_value_${this.variableName}">${this.name}: ${this.value}</p>
+            getElementByXpath("/html/body/div[2]/div[2]/div/div[2]/div[1]/div[1]/div/button[2]").insertAdjacentHTML("afterend",`
+                <p class="text_text__fMaR4 text_labelsRegular__YFakN customInputLabel mbfg_debug_${this.variableName}">${this.name}: ${this.value}</p>
                 `
             );
 
-            this.debugger = document.getElementsByClassName(`mbfg_value_${this.variableName}`)[0];
+            this.debugger = document.getElementsByClassName(`mbfg_debug_${this.variableName}`)[0];
+            //console.log(`Added debug ${this.debugger}`);
         }
     }
 
@@ -78,7 +79,7 @@
             this.button = null;
             this.toggled = false;
             this.canChangeState = true;
-            this.createToggleButton();
+            //this.createToggleButton();
         }
 
         toggleButton(callFunction)
@@ -200,11 +201,17 @@
             // Clear Method Settings
             if (this.methodElements.length > 0)
             {
-                for(let i=0;i<=this.methodElements.length;i++)
+                const length = this.methodElements.length;
+                for(let i=0;i<=length;i++)
                 {
                     const element = this.methodElements[0];
-                    this.methodElements.splice(0, 1);
-                    element.remove();
+                    if (element != null)
+                    {
+                        //console.log(element);
+                        this.methodElements.splice(0, 1);
+                        element.remove();
+                    }
+                    
                 }
             }
         }
@@ -402,7 +409,7 @@
                         this.gameEndedOnDefaultMethod(didWin);
                     } else (this.method == TowerMethods.Adams)
                     {
-                        //this.gameEndedOnAdamsMethod(didWin);
+                        this.gameEndedOnAdamsMethod(didWin);
                     }
                     if (didWin)
                     {
@@ -465,9 +472,10 @@
         // Starts of by clicking start game and contue it off clickButton Function
         startGame()
         {
+            this.gamesDebug.updateValue(this.currentGame);
             console.log("Starting New Game");
             this.currentGame++;
-            this.gamesDebug.updateValue(this.currentGame);
+            
             this.clickSubmitButton();
             setTimeout(()=>{
                 //console.log(`Starting game on row: ${this.rows}, rows targeting: ${this.rowsToTarget}`);
@@ -512,18 +520,27 @@
 
             this.methodChanged(this.method);
 
-            this.gamesDebug = new Debug("Current Games", 0);
-
-            this.autoPlayButton = new ToggleButton("Start Autoplay", "Cancel Autoplay", (toggled)=>{
-                this.gameInPlay=toggled;
-                if (this.gameInPlay)
-                {
-                    this.startAutoPlay();
-                } else {
-                    this.cancelAutoPlay();
-                }
-            });
+            if (this.autoPlayButton == null)
+            {
+                this.autoPlayButton = new ToggleButton("Start Autoplay", "Cancel Autoplay", (toggled)=>{
+                    this.gameInPlay=toggled;
+                    if (this.gameInPlay)
+                    {
+                        this.startAutoPlay();
+                    } else {
+                        this.cancelAutoPlay();
+                    }
+                });
+            }
+            this.autoPlayButton.createToggleButton();
             this.tabElements.push(this.autoPlayButton.button);
+
+            if (this.gamesDebug == null)
+            {
+                this.gamesDebug = new Debug("Current Games", 0);
+            }
+            this.gamesDebug.createDebugger();
+            this.tabElements.push(this.gamesDebug.debugger);
 
             const gameToggleButton = document.getElementsByClassName("gameBetSubmit")[1];
             gameToggleButton.addEventListener("click", ()=>{
@@ -547,11 +564,15 @@
             //console.log("Clearing Tab");
             this.clearMethodSettings();
             // Clear all elements in tabElements Array
-            for(let i=0;i<=this.tabElements.length;i++)
+            const length = this.tabElements.length;
+            for(let i=0;i<=length;i++)
             {
                 const element = this.tabElements[0];
-                this.tabElements.splice(0, 1);
-                element.remove();
+                if (element != null)
+                {
+                    this.tabElements.splice(0, 1);
+                    element.remove();
+                }
             }
         }
 
@@ -582,6 +603,7 @@
 
         onGamePoint()
         {
+            this.checkForGameWinOrLose = false;
             if (this.isGameLost() == true)
             {
                 console.log("Game Lost");
